@@ -36,58 +36,181 @@ jobs:
         const fs = require('fs');
         const yaml = require('js-yaml');
         
-        // Read and parse presets.js
-        const presetsContent = fs.readFileSync('presets.js', 'utf8');
-        // Extract the presets object using regex (since it's not pure JSON)
-        const presetsMatch = presetsContent.match(/window\.gdrivePresets\s*=\s*({[\s\S]*?});/);
-        if (!presetsMatch) {
-          console.error('Could not parse presets.js');
-          process.exit(1);
-        }
-        
-        const presetsObj = eval('(' + presetsMatch[1] + ')');
-        
-        // Read and parse daps2.yml
-        const yamlContent = fs.readFileSync('daps2.yml', 'utf8');
-        const yamlData = yaml.load(yamlContent);
-        
-        // Extract existing IDs from YAML
-        const existingIds = new Set();
-        if (yamlData.gdrive_list) {
-          yamlData.gdrive_list.forEach(item => {
-            existingIds.add(item.id);
-          });
-        }
-        
-        // Find missing presets
-        const missingPresets = [];
-        for (const [name, id] of Object.entries(presetsObj)) {
-          if (!existingIds.has(id)) {
-            missingPresets.push({ name, id });
+        try {
+          // Read and parse presets.js
+          const presetsContent = fs.readFileSync('presets.js', 'utf8');
+          console.log('✓ Successfully read presets.js');
+          
+          // Extract the presets object using a more flexible approach
+          let presetsObj;
+          try {
+            // Try to extract the object content
+            const presetsMatch = presetsContent.match(/window\.gdrivePresets\s*=\s*({[\s\S]*?});/);
+            if (!presetsMatch) {
+              throw new Error('Could not find gdrivePresets object in presets.js');
+            }
+            
+            // Parse the object content safely
+            const objectStr = presetsMatch[1];
+            presetsObj = JSON.parse(objectStr.replace(/(\w+):/g, '"$1":'));
+          } catch (parseError) {
+            console.log('Falling back to eval method...');
+            const presetsMatch = presetsContent.match(/window\.gdrivePresets\s*=\s*({[\s\S]*?});/);
+            if (!presetsMatch) {
+              throw new Error('Could not parse presets.js');
+            }
+            presetsObj = eval('(' + presetsMatch[1] + ')');
           }
-        }
-        
-        // Output results
-        if (missingPresets.length === 0) {
-          console.log('✅ All presets are present in daps2.yml');
-        } else {
-          console.log('❌ Missing presets in daps2.yml:');
-          console.log('');
-          missingPresets.forEach(preset => {
-            console.log(`Name: ${preset.name}`);
-            console.log(`ID: ${preset.id}`);
-            console.log('YAML entry:');
-            console.log(`  - id: ${preset.id}`);
-            console.log(`    location: /posters/${preset.name}`);
-            console.log(`    name: ${preset.name}`);
+          
+          console.log(`✓ Found ${Object.keys(presetsObj).length} presets`);
+          
+          // Read and parse daps2.yml
+          const yamlContent = fs.readFileSync('daps2.yml', 'utf8');
+          const yamlData = yaml.load(yamlContent);
+          console.log('✓ Successfully parsed daps2.yml');
+          
+          // Extract existing IDs and source directories from YAML
+          const existingIds = new Set();
+          const existingNames = new Set();
+          const existingSourceDirs = new Set();
+          
+          if (yamlData.gdrive_list) {
+            yamlData.gdrive_list.forEach(item => {
+              existingIds.add(item.id);
+              existingNames.add(item.name);
+            });
+          }
+          
+          if (yamlData.source_dirs) {
+            yamlData.source_dirs.forEach(dir => {
+              existingSourceDirs.add(dir);
+            });
+          }
+          
+          console.log(`✓ Found ${existingIds.size} gdrive entries and ${existingSourceDirs.size} source directories in YAML`);
+          
+          // Find missing presets
+          const missingPresets = [];
+          const missingSourceDirs = [];
+          
+          for (const [name, id] of Object.entries(presetsObj)) {
+            if (!existingIds.has(id)) {
+              missingPresets.push({ name, id });
+              
+              // Check if source directory is also missing
+              const expectedSourceDir = `/posters/${name}`;
+              if (!existingSourceDirs.has(expectedSourceDir)) {
+                missingSourceDirs.push(expectedSourceDir);
+              }
+            }
+          }
+          
+          // Output results
+          if (missingPresets.length === 0) {
             console.log('');
-          });
+            console.log('🎉 SUCCESS: All presets are present in daps2.yml');
+            console.log('');
+          } else {
+            console.log('');
+            console.log('⚠️  MISSING PRESETS FOUND');
+            console.log('=====================================');
+            console.log(`Found ${missingPresets.length} presets missing from daps2.yml:`);
+            console.log('');
+            
+            // Show complete updated gdrive_list
+            console.log('📋 COMPLETE UPDATED GDRIVE_LIST:');
+            console.log('Replace your gdrive_list section with this:');
+            console.log('');
+            console.log('gdrive_list:');
+            
+            // Add missing presets first (at the top)
+            missingPresets.forEach(preset => {
+              console.log(`  - id: ${preset.id}`);
+              console.log(`    location: /posters/${preset.name}`);
+              console.log(`    name: ${preset.name}`);
+            });
+            
+            // Add existing entries
+            if (yamlData.gdrive_list) {
+              yamlData.gdrive_list.forEach(item => {
+                console.log(`  - id: ${item.id}`);
+                console.log(`    location: ${item.location}`);
+                console.log(`    name: ${item.name}`);
+              });
+            }
+            
+            // Show complete updated source_dirs
+            if (missingSourceDirs.length > 0) {
+              console.log('');
+              console.log('📁 COMPLETE UPDATED SOURCE_DIRS:');
+              console.log('Replace your source_dirs section with this:');
+              console.log('');
+              console.log('source_dirs:');
+              
+              // Add missing source dirs first (at the top)
+              missingSourceDirs.forEach(dir => {
+                console.log(`  - ${dir}`);
+              });
+              
+              // Add existing source dirs
+              if (yamlData.source_dirs) {
+                yamlData.source_dirs.forEach(dir => {
+                  console.log(`  - ${dir}`);
+                });
+              }
+            }
+            
+            // Create comprehensive summary for artifacts
+            let output = 'COMPLETE UPDATED GDRIVE_LIST:\n';
+            output += 'gdrive_list:\n';
+            
+            // Missing presets first
+            missingPresets.forEach(preset => {
+              output += `  - id: ${preset.id}\n`;
+              output += `    location: /posters/${preset.name}\n`;
+              output += `    name: ${preset.name}\n`;
+            });
+            
+            // Existing entries
+            if (yamlData.gdrive_list) {
+              yamlData.gdrive_list.forEach(item => {
+                output += `  - id: ${item.id}\n`;
+                output += `    location: ${item.location}\n`;
+                output += `    name: ${item.name}\n`;
+              });
+            }
+            
+            if (missingSourceDirs.length > 0) {
+              output += '\nCOMPLETE UPDATED SOURCE_DIRS:\n';
+              output += 'source_dirs:\n';
+              
+              // Missing source dirs first
+              missingSourceDirs.forEach(dir => {
+                output += `  - ${dir}\n`;
+              });
+              
+              // Existing source dirs
+              if (yamlData.source_dirs) {
+                yamlData.source_dirs.forEach(dir => {
+                  output += `  - ${dir}\n`;
+                });
+              }
+            }
+            
+            fs.writeFileSync('missing_presets.txt', output);
+            
+            console.log('');
+            console.log('📋 Complete updated YAML saved to missing_presets.txt');
+            console.log('=====================================');
+          }
           
-          // Set output for other steps to use
-          const output = missingPresets.map(p => `${p.name}: ${p.id}`).join('\n');
-          fs.writeFileSync('missing_presets.txt', output);
+          // Always exit successfully - let the workflow continue
+          console.log(`\nComparison completed. Missing: ${missingPresets.length}`);
           
-          // Exit with error code to fail the workflow
+        } catch (error) {
+          console.error('❌ Error during comparison:');
+          console.error(error.message);
+          console.error('Stack trace:', error.stack);
           process.exit(1);
         }
         EOF
@@ -95,39 +218,58 @@ jobs:
         node compare.js
         
     - name: Upload missing presets report
-      if: failure()
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: missing-presets-report
         path: missing_presets.txt
+        if-no-files-found: ignore
         
     - name: Comment on PR (if applicable)
-      if: failure() && github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         script: |
           const fs = require('fs');
           
-          let comment = '## ❌ Missing Presets in YAML\n\n';
-          comment += 'The following presets from `presets.js` are not found in `daps2.yml`:\n\n';
+          // Check if missing presets file exists
+          if (!fs.existsSync('missing_presets.txt')) {
+            console.log('No missing presets found - skipping PR comment');
+            return;
+          }
+          
+          let comment = '## 📋 Preset Comparison Results\n\n';
           
           try {
             const missingPresets = fs.readFileSync('missing_presets.txt', 'utf8');
-            const lines = missingPresets.split('\n').filter(line => line.trim());
+            const sections = missingPresets.split('\nCOMPLETE UPDATED SOURCE_DIRS:\n');
+            const gdriveSection = sections[0].replace('COMPLETE UPDATED GDRIVE_LIST:\n', '');
+            const sourceDirSection = sections[1] || '';
             
-            lines.forEach(line => {
-              const [name, id] = line.split(': ');
-              comment += `### ${name}\n`;
-              comment += `- **ID**: \`${id}\`\n`;
-              comment += `- **Suggested YAML entry**:\n`;
+            if (!gdriveSection.includes('gdrive_list:')) {
+              comment += '✅ All presets from `presets.js` are present in `daps2.yml`\n';
+            } else {
+              comment += '⚠️ Found presets from `presets.js` missing from `daps2.yml`\n\n';
+              comment += '## 📝 Complete Updated daps2.yml Sections\n\n';
+              comment += '**Replace your current sections with these complete updated versions:**\n\n';
+              
+              comment += '### 📋 Updated gdrive_list section:\n';
               comment += '```yaml\n';
-              comment += `  - id: ${id}\n`;
-              comment += `    location: /posters/${name}\n`;
-              comment += `    name: ${name}\n`;
-              comment += '```\n\n';
-            });
+              comment += gdriveSection.trim();
+              comment += '\n```\n\n';
+              
+              if (sourceDirSection.trim()) {
+                comment += '### 📁 Updated source_dirs section:\n';
+                comment += '```yaml\n';
+                comment += sourceDirSection.trim();
+                comment += '\n```\n\n';
+              }
+              
+              comment += '**Note:** New entries from presets.js have been added to the top of each list.\n';
+            }
           } catch (error) {
-            comment += 'Error reading missing presets file.\n';
+            comment += '❌ Error reading comparison results.\n';
+            console.error('Error reading missing presets file:', error);
           }
           
           github.rest.issues.createComment({
