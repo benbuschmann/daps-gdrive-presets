@@ -47,3 +47,21 @@
   - id: 1-WhCVwRLfV6hxyKF7W5IuzIHIYicCdAv
     location: /posters/iamspartacus-tpdb
     name: iamspartacus-tpdb
+
+  source_dirs:
+  - /posters/solenothers
+  - /posters/iamspartacus-tpdb
+  - /posters/majortpdb
+  - /posters/overbook874
+  - /posters/stupifier
+  - /posters/zarox
+  - /posters/sahara
+  - /posters/dsaq
+  - /posters/iamspartacus
+  - /posters/lioncity
+  - /posters/majorgiant
+  - /posters/bz
+  - /posters/quafley
+  - /posters/solen
+  - /posters/drazzilb
+  - /posters/chrisdc
