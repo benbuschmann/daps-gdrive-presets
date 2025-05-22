@@ -1,4 +1,34 @@
   gdrive_list:
+  - id: 1HjwMWfI6XpQVYH36VBzYiJA4UWfoqcQ9
+    location: /posters/iamspartacus-new
+    name: iamspartacus-new
+  - id: 1NxQS4-9tqixppEu08N69Zs8v1xUbvs7b
+    location: /posters/mareau
+    name: mareau
+  - id: 1KJlsnMz-z2RAfNxKZp7sYP_U0SD1V6lS
+    location: /posters/tokenminal
+    name: tokenminal
+  - id: 1ZhcV8Ybja4sJRrVze-twOmb8fEZfZ2Ci
+    location: /posters/minimyself
+    name: minimyself
+  - id: 1qBC7p9K4zur5dOCf3F6VTyUROVvHQoSb
+    location: /posters/jpalenz77
+    name: jpalenz77
+  - id: 1Kb1kFZzzKKlq5N_ob8AFxJvStvm9PdiL
+    location: /posters/kalyanrajnish
+    name: kalyanrajnish
+  - id: 1TYVIGKpSwhipLyVQQn_OJHTobM6KaokB
+    location: /posters/theotherguy
+    name: theotherguy
+  - id: 1cqDinU27cnHf5sL5rSlfO7o_T6LSxG77
+    location: /posters/reitenth
+    name: reitenth
+  - id: 1Wz0S18sKOeyBURkJ1uT3RtkEmSsK1-PG
+    location: /posters/wenisinmood
+    name: wenisinmood
+  - id: 1XXZL-TpqWqfbKBWCifN2-MRdGDbSzHTj
+    location: /posters/dweagle79
+    name: dweagle79
   - id: 1VeeQ_frBFpp6AZLimaJSSr0Qsrl6Tb7z
     location: /posters/drazzilb
     name: drazzilb
@@ -49,6 +79,16 @@
     name: iamspartacus-tpdb
 
   source_dirs:
+  - /posters/iamspartacus
+  - /posters/mareau
+  - /posters/tokenminal
+  - /posters/minimyself
+  - /posters/jpalenz77
+  - /posters/kalyanrajnish
+  - /posters/theotherguy
+  - /posters/reitenth
+  - /posters/wenisinmood
+  - /posters/dweagle79
   - /posters/solenothers
   - /posters/iamspartacus-tpdb
   - /posters/majortpdb
@@ -57,7 +97,7 @@
   - /posters/zarox
   - /posters/sahara
   - /posters/dsaq
-  - /posters/iamspartacus
+  - /posters/iamspartacus-new
   - /posters/lioncity
   - /posters/majorgiant
   - /posters/bz
