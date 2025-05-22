@@ -11,7 +11,7 @@ window.gdrivePresets = {
     "solen": "1YEuS1pulJAfhKm4L8U9z5-EMtGl-d2s7",
     "majorgiant": "1ZfvUgN0qz4lJYkC_iMRjhH-fZ0rDN_Yu",
     "overbook874": "1LIVG1RbTEd7tTJMbzZr7Zak05XznLFia",
-    "iamspartacus": "1aRngLdC9yO93gvSrTI2LQ_I9BSoGD-7o",
+    "iamspartacus": "1HjwMWfI6XpQVYH36VBzYiJA4UWfoqcQ9",
     "zarox": "1wOhY88zc0wdQU-QQmhm4FzHL9QiCQnpu",
     "mareau": "1NxQS4-9tqixppEu08N69Zs8v1xUbvs7b",
     "tokenminal": "1KJlsnMz-z2RAfNxKZp7sYP_U0SD1V6lS",
