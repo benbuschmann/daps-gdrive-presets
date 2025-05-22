@@ -89,16 +89,23 @@ jobs:
           
           console.log(`✓ Found ${existingIds.size} gdrive entries and ${existingSourceDirs.size} source directories in YAML`);
           
-          // Find missing presets
+          // Find missing presets and handle name conflicts
           const missingPresets = [];
           const missingSourceDirs = [];
           
           for (const [name, id] of Object.entries(presetsObj)) {
             if (!existingIds.has(id)) {
-              missingPresets.push({ name, id });
+              // Check if name already exists in YAML
+              let finalName = name;
+              if (existingNames.has(name)) {
+                finalName = `${name}-new`;
+                console.log(`⚠️  Name conflict detected: '${name}' already exists, using '${finalName}' instead`);
+              }
+              
+              missingPresets.push({ name: finalName, id, originalName: name });
               
               // Check if source directory is also missing
-              const expectedSourceDir = `/posters/${name}`;
+              const expectedSourceDir = `/posters/${finalName}`;
               if (!existingSourceDirs.has(expectedSourceDir)) {
                 missingSourceDirs.push(expectedSourceDir);
               }
@@ -128,6 +135,9 @@ jobs:
               console.log(`  - id: ${preset.id}`);
               console.log(`    location: /posters/${preset.name}`);
               console.log(`    name: ${preset.name}`);
+              if (preset.originalName !== preset.name) {
+                console.log(`    # Note: Renamed from '${preset.originalName}' due to name conflict`);
+              }
             });
             
             // Add existing entries
@@ -169,6 +179,9 @@ jobs:
               output += `  - id: ${preset.id}\n`;
               output += `    location: /posters/${preset.name}\n`;
               output += `    name: ${preset.name}\n`;
+              if (preset.originalName !== preset.name) {
+                output += `    # Note: Renamed from '${preset.originalName}' due to name conflict\n`;
+              }
             });
             
             // Existing entries
